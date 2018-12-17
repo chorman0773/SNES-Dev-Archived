@@ -59,9 +59,12 @@ inline static float powOverFact(float f,unsigned c){
 __qcdouble __qc_minvsqrt(__qcdouble d){
 	const double threehalfs = 1.5;
 	const unsigned long long magic = 0x5FE6EB50C7B537A9;
-	float x2 = f.val*0.5;
-	if(f.val<0)
+	double x2 = d.val*0.5;
+	if(d.val<0)
 		return dNaN;
+	d.bits = magic - (d.bits >> 1);
+	d.val = d.val*(threehalfs - (x2 * d.val * d.val));
+	return d;
 }
 
 bool __qc_isNaNf(__qcfloat f){

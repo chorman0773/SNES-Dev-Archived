@@ -1,0 +1,16 @@
+/*
+ * utility
+ *
+ *  Created on: Dec 3, 2018
+ *      Author: chorm
+ */
+
+#ifndef __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18
+#define __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18
+
+
+namespace std{
+
+}
+
+#endif /* __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18 */

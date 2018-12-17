@@ -1,0 +1,254 @@
+/*
+ * type_traits
+ *
+ *  Created on: Nov 26, 2018
+ *      Author: chorm
+ */
+
+#ifndef __TYPE_TRAITS__2018_11_26_21_14_14
+#define __TYPE_TRAITS__2018_11_26_21_14_14
+
+#include <cstddef>
+
+namespace std{
+
+	template<typename T,T val> struct integral_constant{
+		inline constexpr T value{val};
+		constexpr integral_constant()=default;
+		constexpr T operator()()const{
+			return value;
+		}
+		constexpr operator T()const{
+			return value;
+		}
+	};
+
+
+	template<typename...> using void_t = void;
+
+	template<bool b> using bool_constant = integral_constant<bool,b>;
+	using true_type = bool_constant<true>;
+	using false_type = bool_constant<false>;
+	template<typename T> struct type_identity{
+		typedef T type;
+	};
+	template<typename T> using type_identity_t = typename type_identity<T>::type;
+
+	template<bool,typename=void> struct enable_if{};
+	template<typename T> struct enable_if<true,T>:type_identity<T>{};
+	template<bool b,typename T=void> using enable_if_t = typename enable_if<T>::type;
+
+	template<bool,typename T,typename> struct conditional:type_identity<T>{};
+	template<typename T,typename U> struct conditional<false,T,U>:type_identity<U>{};
+	template<bool b,typename T,typename U> using conditional_t = typename conditional<b,T,U>::type;
+
+	namespace detail{
+		template<bool StopOn,typename First,typename... Rest> struct join_trait:
+				conditional_t<First::value==StopOn,First,join_trait<StopOn,Rest...>>{};
+		template<bool StopOn,typename First> struct join_trait<StopOn,First>:First{};
+	}
+	template<typename... Ts> using conjunction = detail::join_trait<false,true_type,Ts...>;
+	template<typename... Ts> using disjunction = detail::join_trait<true,false_type,Ts...>;
+	template<typename T> struct negation:bool_constant<T::value>{};
+
+	template<typename... Ts> constexpr bool conjunction_v = conjunction<Ts...>::value;
+	template<typename... Ts> constexpr bool disjunction_v = disjunction<Ts...>::value;
+	template<typename T> constexpr bool negation_v = negation<T>::value;
+
+	namespace detail{
+		template<typename T,typename U> struct same_no_cv:false_type{};
+		template<typename T> struct same_no_cv<T,T>:true_type{};
+		template<typename T> struct same_no_cv<const T,T>:true_type{};
+		template<typename T> struct same_no_cv<volatile T,T>:true_type{};
+		template<typename T> struct same_no_cv<const volatile T,T>:true_type{};
+		template<typename T,typename... Ts> struct matches_any:conjunction<same_no_cv<T,Ts>...>{};
+	}
+	template<typename T> using is_void = detail::same_no_cv<T,void>;
+	template<typename T> using is_nullptr = detail::same_no_cv<T,decltype(nullptr)>;
+	template<typename T> using is_integral = detail::matches_any<T,char,signed char,unsigned char,
+			short, unsigned short,
+			int, unsigned,
+			long, unsigned long,
+			long long, unsigned long long,
+			char16_t,char32_t,
+			wchar_t,bool>;
+
+	template<typename T> inline T&& declval(){
+		static_assert(!is_void<T>::value,"declval may only be used in an unevalued context");
+	}
+
+	namespace detail{
+		template<typename T> struct integral_info{
+			static_assert(is_integral<T>::value);
+			using is_signed = false_type;
+			using is_unsigned = false_type;
+			using mk_signed = void;
+			using make_unsigned = void;
+		};
+		template<typename T,bool,typename Other> struct mk_integral_info{
+			using is_signed = true_type;
+			using is_unsigned = false_type;
+			using mk_signed = T;
+			using mk_unsigned = Other;
+		};
+		template<typename T,typename Other> struct mk_integral_info<T,false,Other>{
+			using is_signed = false_type;
+			using is_unsigned = true_type;
+			using mk_signed = Other;
+			using mk_unsigned = T;
+		};
+		template<typename T> struct integral_info<const T>{
+			using is_signed = typename integral_info<T>::is_signed;
+			using is_unsigned = typename integral_info<T>::is_unsigned;
+			using mk_signed = const typename integral_info<T>::mk_signed;
+			using mk_unsigned = const typename integral_info<T>::mk_unsigned;
+		};
+		template<typename T> struct integral_info<volatile T>{
+			using is_signed = typename integral_info<T>::is_signed;
+			using is_unsigned = typename integral_info<T>::is_unsigned;
+			using mk_signed = volatile typename integral_info<T>::mk_signed;
+			using mk_unsigned = volatile typename integral_info<T>::mk_unsigned;
+		};
+		template<typename T> struct integral_info<const volatile T>{
+			using is_signed = typename integral_info<T>::is_signed;
+			using is_unsigned = typename integral_info<T>::is_unsigned;
+			using mk_signed = const volatile typename integral_info<T>::mk_signed;
+			using mk_unsigned = const volatile typename integral_info<T>::mk_unsigned;
+		};
+		template<> struct integral_info<signed char>:mk_integral_info<signed char,true,unsigned char>{};
+		template<> struct integral_info<unsigned char>:mk_integral_info<unsigned char,false,signed char>{};
+		template<> struct integral_info<short>:mk_integral_info<short,true,unsigned short>{};
+		template<> struct integral_info<unsigned short>:mk_integral_info<unsigned short,false,short>{};
+		template<> struct integral_info<int>:mk_integral_info<int,true,unsigned>{};
+		template<> struct integral_info<unsigned>:mk_integral_info<unsigned,false,int>{};
+		template<> struct integral_info<long>:mk_integral_info<long,true,unsigned long>{};
+		template<> struct integral_info<unsigned long>:mk_integral_info<unsigned long,false,long>{};
+		template<> struct integral_info<long long>:mk_integral_info<long long,true,unsigned long long>{};
+		template<> struct integral_info<unsigned long long>:mk_integral_info<unsigned long long,false,long long>{};
+		template<> struct integral_info<bool>:mk_integral_info<bool,false,bool>{};
+		template<> struct integral_info<wchar_t>:mk_integral_info<wchar_t,false,wchar_t>{};
+		template<> struct integral_info<char16_t>:mk_integral_info<char16_t,false,char16_t>{};
+		template<> struct integral_info<char32_t>:mk_integral_info<char32_t,false,char32_t>{};
+		template<> struct integral_info<char>{
+			using is_signed = bool_constant<char{0}<char{-1}>;
+			using is_unsigned = negation<is_signed>;
+			using mk_signed = signed char;
+			using mk_unsigned = unsigned char;
+		};
+	}
+	template<typename T,typename U> struct is_same:conjunction<is_void<T>,is_void<U>>{};
+	template<typename T> struct is_same<T,T>:true_type{};
+
+	namespace detail{
+		template<typename T,size_t E,size_t R=0> struct __remove_extents:type_identity<T>{
+			using __rank = integral_constant<size_t,R>;
+			using __extent = integral_constant<size_t,0>;
+		};
+
+		template<typename T,size_t R> struct __remove_extents<T[],0,R>:type_identity<T[]>{
+			using __rank = integral_constant<size_t,R>;
+			using __extent = integral_constant<size_t,0>;
+		};
+		template<typename T,size_t N,size_t R> struct __remove_extents<T[N],0,R>:type_identity<T[N]>{
+			using __rank = integral_constant<size_t,R>;
+			using __extent = integral_constant<size_t,N>;
+		};
+		template<typename T,size_t E,size_t R> struct __remove_extents<T[],E,R>:__remove_extents<T,E-1,R+1>{};
+		template<typename T,size_t N,size_t E,size_t R> struct __remove_extents<T[N],E,R>:__remove_extents<T,E-1,R+1>{};
+		template<typename T,size_t R> struct __remove_extents<T[],-1,R>:__remove_extents<T,-1,R+1>{};
+		template<typename T,size_t N,size_t R> struct __remove_extents<T[N],-1,R>:__remove_extents<T,-1,R+1>{};
+	}
+	template<typename T> struct is_array:false_type{};
+	template<typename T> struct is_array<T[]>:true_type{};
+	template<typename T,size_t N> struct is_array<T[N]>:true_type{};
+
+	template<typename T> using rank = typename detail::__remove_extents<T,-1>::__rank;
+	template<typename T,size_t I=0> using extent = typename detail::__remove_extents<T,I>::__extent;
+	template<typename T> using remove_extent = detail::__remove_extents<T,0>;
+	template<typename T> using remove_all_extents = detail::__remove_extents<T,-1>;
+
+	template<typename T> struct remove_reference:type_identity<T>{};
+	template<typename T> struct remove_reference<T&>:type_identity<T>{};
+	template<typename T> struct remove_reference<T&&>:type_identity<T>{};
+	template<typename T> using remove_reference_t = typename remove_reference<T>::type;
+
+	namespace detail{
+		template<typename AllwaysVoid,typename T,typename... Ts> struct is_constructible_helper:false_type{
+			using __is_nothrow_constructible = false_type;
+		};
+		template<typename T,typename... Ts> struct is_constructible_helper<void_t<decltype(new((void*)0) T(declval<Ts>()...))>,T,Ts...>:true_type{
+			using __is_nothrow_constructible = bool_constant<noexcept(new((void*)0) T(declval<Ts>()...))>;
+		};
+		template<typename AlwaysVoid,typename T,typename U> struct is_assignable_helper:false_type{
+			using __is_nothrow_assignable = false_type;
+		};
+		template<typename T,typename U> struct is_assignable_helper<void_t<decltype(declval<T&>()=declval<U>())>,T,U>:true_type{
+			using __is_nothrow_assignable = bool_constant<noexcept(declval<T&>()=declval<U>())>;
+		};
+		template<typename T> auto is_convertible_helper_fn(T t) noexcept -> true_type;
+		template<typename T> auto is_convertible_helper_fn(...) -> false_type;
+		template<typename T,typename U> using is_convertible_helper = decltype(is_convertible_helper_fn<T>(declval<U>()));
+		template<typename T,typename U> using is_nothrow_convertible_helper = bool_constant<noexcept(is_convertible_helper_fn<T>(declval<U>()))>;
+		template<typename AlwaysVoid,typename T,typename U> struct is_swappable_with_helper:false_type{
+			using __is_nothrow_swapable = false_type;
+		};
+		template<typename T,typename U> struct is_swappable_with_helper<void_t<decltype(swap(declval<T&>(),declval<U&>()))>,T,U>:true_type{
+			using __is_nothrow_swapable = bool_constant<noexcept(swap(declval<T&>(),declval<U&>()))>;
+		};
+	}
+
+	template<typename T,typename... Ts> struct is_constructible:detail::is_constructible_helper<void,T,Ts...>{};
+	template<typename T,typename... Ts> constexpr bool is_constructible_v = is_constructible<T,Ts...>::value;
+	template<typename T,typename... Ts> struct is_nothrow_constructible:detail::is_constructible_helper<void,T,Ts...>::__is_nothrow_constructible{};
+	template<typename T,typename... Ts> constexpr bool is_nothrow_constructible_v = is_nothrow_constructible<T,Ts...>::value;
+
+	template<typename T> using is_copy_constructible = is_constructible<T,const T&>;
+	template<typename T> using is_move_constructible = is_constructible<T,T&&>;
+	template<typename T> using is_default_constructible = is_constructible<T>;
+	template<typename T> using is_nothrow_copy_constructible = is_nothrow_constructible<T,const T&>;
+	template<typename T> using is_nothrow_move_constructible = is_nothrow_constructible<T,T&&>;
+	template<typename T> using is_nothrow_default_constructible = is_nothrow_constructible<T>;
+
+	template<typename T> constexpr bool is_copy_constructible_v = is_copy_constructible<T>::value;
+	template<typename T> constexpr bool is_move_constructible_v = is_move_constructible<T>::value;
+	template<typename T> constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
+	template<typename T> constexpr bool is_nothrow_copy_constructible_v = is_nothrow_copy_constructible<T>::value;
+	template<typename T> constexpr bool is_nothrow_move_constructible_v = is_nothrow_move_constructible<T>::value;
+	template<typename T> constexpr bool is_nothrow_default_constructible_v = is_nothrow_default_constructible<T>::value;
+
+	template<typename T,typename U> using is_assignable = detail::is_assignable_helper<void,T,U>;
+	template<typename T,typename U> struct is_nothrow_assignable:detail::is_assignable_helper<void,T,U>::__is_nothrow_assignable{};
+
+	template<typename T,typename U> constexpr bool is_assignable_v = is_assignable<T,U>::value;
+	template<typename T,typename U> constexpr bool is_nothrow_assignable_v = is_nothrow_assignable<T,U>::value;
+
+	template<typename T> using is_copy_assignable = is_assignable<T,const T&>;
+	template<typename T> using is_move_assignable = is_assignable<T,T&&>;
+	template<typename T> using is_nothrow_copy_assignable = is_nothrow_assignable<T,const T&>;
+	template<typename T> using is_nothrow_move_assignable = is_nothrow_assignable<T,T&&>;
+
+	template<typename T> constexpr bool is_copy_assignable_v = is_copy_assignable<T>::value;
+	template<typename T> constexpr bool is_move_assignable_v = is_move_assignable<T>::value;
+	template<typename T> constexpr bool is_nothrow_copy_assignable_v = is_nothrow_copy_assignable<T>::value;
+	template<typename T> constexpr bool is_nothrow_move_assignable_v = is_nothrow_move_assignable<T>::value;
+
+	template<typename T,typename U> struct is_convertible:detail::is_convertible_helper<U,T>{};
+	template<typename T,typename U> struct is_nothrow_convertible:detail::is_nothrow_convertible_helper<U,T>{};
+
+	template<typename T,typename U> constexpr bool is_convertible_v = is_convertible<T,U>::value;
+	template<typename T,typename U> constexpr bool is_nothrow_convertible_v = is_nothrow_convertible<T,U>::value;
+
+	template<typename T,typename U> using is_swappable_with = detail::is_swappable_with_helper<void,T,U>;
+	template<typename T,typename U> struct is_nothrow_swappable_with:detail::is_swappable_with_helper<void,T,U>::__is_nothrow_swapable{};
+	template<typename T> using is_swappable = is_swappable_with<T,T>;
+	template<typename T> using is_nothrow_swappable = is_nothrow_swappable_with<T,T>;
+
+	template<typename T,typename U> constexpr bool is_swappable_with_v = is_swappable_with<T,U>::value;
+	template<typename T> constexpr bool is_swappable_v = is_swappable<T>::value;
+	template<typename T,typename U> constexpr bool is_nothrow_swappable_with_v = is_nothrow_swappable_with<T,U>::value;
+	template<typename T> constexpr bool is_nothrow_swappable_v = is_swappable<T>::value;
+}
+
+
+
+#endif /* __TYPE_TRAITS__2018_11_26_21_14_14 */

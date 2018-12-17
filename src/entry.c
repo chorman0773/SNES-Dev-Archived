@@ -13,17 +13,24 @@ extern unsigned char stackHead[];
 extern unsigned char stackTail[];
 
 typedef void(init_func)(void);
+typedef void(__attribute__((convention(this))) finalizer)(void*);
 
 extern init_func* const initTabBegin[];
 extern init_func* const initTabEnd[];
 
 void __cxa_finalize(void*);
+void __cxa_at_exit(finalizer*,void*,void*);
 
 void main();
 void vblank();
 void hblank();
 void sig(unsigned short);
 
+struct reg{
+	unsigned short A;
+	unsigned short X;
+	unsigned short Y;
+};
 
 
 #pragma section .sys rx $00:8000
@@ -42,6 +49,7 @@ void __reset() __attribute__((naked)){
 			(*_curr)();
 	}
 	main();
+	__cxa_finalize(NULL);
 	__builtin_stop();
 }
 void __vblank()__attribute__((convention(interrupt))){
@@ -56,9 +64,9 @@ void __brk()__attribute__((convention(interrupt))){
 	sig(__builtin_accumulator());
 }
 void __irq()__attribute__((convention(interrupt))){
-	if(faultCode==0)
+	if(__builtin_fault_code()==0)
 		hblank();
-	sig(faultCode);
+	sig(__builtin_fault_code());
 }
 
 void __dbg()__attribute__((convention(interrupt))){

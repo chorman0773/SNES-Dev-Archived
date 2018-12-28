@@ -36,6 +36,8 @@ struct exception_info{
 	const void* rtti;
 	dtor* __dtor;
 	copyctor* __copyctor;
+	unsigned short refcount;
+	unsigned char buffer[];
 };
 
 _CDECL const vtable* __cxa_getvtable(void*);

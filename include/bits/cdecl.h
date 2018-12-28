@@ -14,5 +14,8 @@
 #define _CDECL
 #endif
 
+#define _Noreturn __attribute__((noreturn))
+
+typedef void noreturn_t;
 
 #endif /* INCLUDE_BITS_CDECL_H__2018_12_337_11_45_15 */

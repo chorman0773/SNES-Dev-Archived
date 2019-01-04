@@ -69,7 +69,7 @@ extern"C"{
 
 	int rand(){
 		__builtin_atomic_begin();
-		int val = static_cast<int>((_GetRandGenerator()())>>16);
+		int val = static_cast<int>((_GetRandGenerator()())>>17);
 		__builtin_atomic_end();
 		return val;
 	}

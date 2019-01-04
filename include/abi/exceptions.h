@@ -14,6 +14,7 @@
 
 _CDECL struct exception_info* __uncaught_exception();
 _CDECL struct exception_info* __mk_exception_info(void*,const void*,copyctor,dtor);
+_CDECL void __dup_exception_info(struct exception_info*);
 _CDECL void __free_exception_info(struct exception_info*);
 _CDECL int __uncaught_exceptions();
 

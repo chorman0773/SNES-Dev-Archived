@@ -6,17 +6,16 @@
  */
 
 #include <stddef.h>
-#include <registers.h>
-void* ebp =0;
 
-extern unsigned char stackHead[];
-extern unsigned char stackTail[];
+
+extern unsigned char __stackHead[];
+extern unsigned char __stackTail[];
 
 typedef void(init_func)(void);
 typedef void(__attribute__((convention(this))) finalizer)(void*);
 
-extern init_func* const initTabBegin[];
-extern init_func* const initTabEnd[];
+extern init_func* const __initTabBegin[];
+extern init_func* const __initTabEnd[];
 
 void __cxa_finalize(void*);
 void __cxa_at_exit(finalizer*,void*,void*);
@@ -24,13 +23,7 @@ void __cxa_at_exit(finalizer*,void*,void*);
 void main();
 void vblank();
 void hblank();
-void sig(unsigned short);
-
-struct reg{
-	unsigned short A;
-	unsigned short X;
-	unsigned short Y;
-};
+void raise(unsigned short);
 
 
 #pragma section .sys rx $00:8000
@@ -61,12 +54,12 @@ void __abort()__attribute__((convention(interrupt))){
 }
 
 void __brk()__attribute__((convention(interrupt))){
-	sig(__builtin_accumulator());
+	raise(__builtin_accumulator());
 }
 void __irq()__attribute__((convention(interrupt))){
 	if(__builtin_fault_code()==0)
 		hblank();
-	sig(__builtin_fault_code());
+	raise(__builtin_fault_code());
 }
 
 void __dbg()__attribute__((convention(interrupt))){

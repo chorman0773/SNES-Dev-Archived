@@ -13,7 +13,8 @@
 #define offsetof(type,member) __builtin_offsetof(type,member)
 
 namespace std{
-
+	typedef decltype(sizeof(int)) size_t;
+	typedef decltype(((int*)0)-((int*)0)) ptrdiff_t;
 }
 
 #endif /* __INCLUDE_STDC___CSTDDEF__2018_12_03_09_37_35 */

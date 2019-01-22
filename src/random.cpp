@@ -29,9 +29,12 @@ public:
 	}
 };
 
+extern const volatile unsigned short _EnthropySource;
+
+
 static std::uint16_t genPeusdoRandomBits(){
-	static _LFSR lfsr{0x3f7f^__builtin_joypad1()};
-	return static_cast<std::uint16_t>(lfsr);
+	static _LFSR lfsr{_EnthropySource};
+	return static_cast<std::uint16_t>(lfsr)^__builtin_joypad1()^__builtin_joypad2();
 }
 
 static unsigned int hash(const std::string& s){
@@ -47,7 +50,7 @@ std::random_device::random_device(const std::string& s):_M_khash(hash(s)){}
 unsigned int std::random_device::operator()(){
 	_M_khash ^= genPeusdoRandomBits();
 	_M_khash = _M_khash>>7|_M_khash<<(32-7);
-	_M_khash += __builtin_rtc_nanos();
+	_M_khash ^= __builtin_rtc_nanos();
 	return _M_khash;
 }
 

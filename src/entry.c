@@ -6,7 +6,9 @@
  */
 
 #include <stddef.h>
+#include <setjmp.h>
 
+volatile unsigned short _FrameCount;
 
 extern unsigned char __stackHead[];
 extern unsigned char __stackTail[];
@@ -26,6 +28,7 @@ void hblank();
 void raise(unsigned short);
 
 
+
 #pragma section .sys rx $00:8000
 void __reset() __attribute__((naked)){
 	__builtin_hint_emulation();
@@ -33,11 +36,14 @@ void __reset() __attribute__((naked)){
 	__builtin_native();
 	__builtin_index16();
 	__builtin_acc16();
-	__builtin_set_stack_address(stackTail);
+	__builtin_set_stack_address(__stackTail);
 	__builtin_enable_interupts();
+	__reset_start();
+}
+static void __reset_start() __attribute__((noreturn)){
 	{
-		init_func** _begin = initTabBegin;
-		init_func** _end = initTabEnd;
+		init_func** _begin = __initTabBegin;
+		init_func** _end = __initTabEnd;
 		for(init_func** _curr = _begin;_curr!=_end;_curr++)
 			(*_curr)();
 	}
@@ -46,6 +52,7 @@ void __reset() __attribute__((naked)){
 	__builtin_stop();
 }
 void __vblank()__attribute__((convention(interrupt))){
+	_FrameCount++;
 	vblank();
 }
 

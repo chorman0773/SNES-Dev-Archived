@@ -1,0 +1,69 @@
+/*
+ * exception
+ *
+ *  Created on: Jan 7, 2019
+ *      Author: chorm
+ */
+
+#ifndef INCLUDE_STDC___EXCEPTION_
+#define INCLUDE_STDC___EXCEPTION_
+
+
+#include <utility>
+
+#include <abi/exceptions.h>
+#include <new>
+
+namespace std{
+	class exception
+	{
+	public:
+		exception() noexcept { }
+		virtual ~exception() noexcept;
+		virtual const char* what() const noexcept;
+	};
+
+	struct __exception_ptr{
+	private:
+		struct exception_info* _M_buff;
+	public:
+		constexpr __exception_ptr():_M_buff{nullptr}{}
+		explicit __exception_ptr(struct exception_info* s);
+		constexpr friend void swap(__exception_ptr& __p1,__exception_ptr& __p2){
+			swap(__p1._M_buff,__p2._M_buff);
+		}
+		~__exception_ptr();
+		__exception_ptr(const __exception_ptr& p);
+		__exception_ptr(__exception_ptr&& p);
+		void __rethrow();
+
+		explicit operator bool()const;
+	};
+	typedef void (*terminate_handler) ();
+	typedef __exception_ptr exception_ptr;
+	int uncaught_exceptions()noexcept;
+#if __cplusplus<=201703L
+	inline bool uncaught_exception()noexcept{
+		return uncaught_exceptions();
+	}
+#endif
+	template<typename E> exception_ptr make_exception_ptr(E e){
+		if(sizeof(E)>65496||alignof(E)>8)
+			return make_exception_ptr(std::bad_alloc{});
+		return exception_ptr{__allocate_exception_buffer(&e,&typeid(E),__builtin_copy_constructor(E),__builtin_destructor(E))};
+	}
+	[[noreturn]] void rethrow_exception(exception_ptr);
+	exception_ptr current_exception();
+
+	void set_terminate_handler(terminate_handler handler);
+	terminate_handler get_terminate_handler();
+
+	[[noreturn]] void terminate() noexcept;
+
+}
+
+
+
+
+
+#endif /* INCLUDE_STDC___EXCEPTION_ */

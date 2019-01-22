@@ -8,8 +8,26 @@
 #ifndef __INCLUDE_STDC___TUPLE__2018_12_03_09_31_37
 #define __INCLUDE_STDC___TUPLE__2018_12_03_09_31_37
 
+#include <type_traits>
+#include <utility>
 
+namespace std{
+	template<typename _T> struct __tuple_base_type{
+		_T _M_val;
+		template<typename _Type,std::enable_if_t<std::is_same_v<std::decay_t<_Type>,std::decay_t<_T>>&&std::is_constructible_v<_T,_Type&&>>* = 0>
+			__tuple_base_type(_Type&& t) noexcept(std::is_nothrow_constructible_v<_T,_Type&&>):_M_val{t}{}
 
-
+		explicit operator _T&()&{
+			return _M_val;
+		}
+		explicit operator const _T&()const&{
+			return _M_val;
+		}
+		explicit operator _T&&()&&{
+			return std::move(_M_val);
+		}
+		explicit operator
+	};
+}
 
 #endif /* __INCLUDE_STDC___TUPLE__2018_12_03_09_31_37 */

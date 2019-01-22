@@ -11,7 +11,8 @@
 #include <cstdint>
 #include <string>
 #include <limits>
-
+#include <type_traits>
+#include <bits/Concepts.hpp>
 
 namespace std{
 	struct random_device{
@@ -93,9 +94,11 @@ namespace std{
 		using _Base::max;
 		using _Base::min;
 	};
+
 	using default_random_engine = __default_random_engine<0x5DEECE66DuLL,0xBuLL,0xFFFFFFFFFFFFuLL>;
 	using minstd_rand0 = std::linear_congruential_engine<std::uint_fast32_t, 16807, 0, 2147483647>;
 	using minstd_rand = std::linear_congruential_engine<std::uint_fast32_t, 48271, 0, 2147483647>;
+
 }
 
 

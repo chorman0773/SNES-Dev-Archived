@@ -8,9 +8,37 @@
 #ifndef __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18
 #define __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18
 
+#include <type_traits>
+
+#include <initializer_list>
 
 namespace std{
+	template<typename T> constexpr std::remove_reference_t<T>&& move(T&& __t) noexcept{
+		return static_cast<std::remove_reference_t<T>&&>(__t);
+	}
+	template<typename T> constexpr T&& forward(std::remove_reference_t<T>&& __t) noexcept{
+		return static_cast<T&&>(__t);
+	}
+	template<typename T> constexpr T&& forward(std::remove_reference_t<T>& __t) noexcept{
+		return static_cast<T&&>(__t);
+	}
 
+	template<typename T,typename U=T,typename=std::enable_if_t<std::is_move_constructible_v<T>&&std::is_assignable_v<T,U&&>>> T exchange(T& __target,U&& __val){
+		T tmp{std::move(__target)};
+		__target = std::forward<U>(__val);
+		return std::move(tmp);
+	}
+
+	template<typename T> const T& as_const(T& __t){
+		return __t;
+	}
+	template<typename T> const T& as_const(const T&&)=delete;
+
+	template<typename T,typename=std::enable_if_t<std::is_move_constructible_v<T>&&std::is_move_assignable_v<T>>> constexpr void swap(T& __t1,T& __t2){
+		T tmp{std::move(__t1)};
+		__t1 = std::move(__t2);
+		__t2 = std::move(tmp);
+	}
 }
 
 #endif /* __INCLUDE_STDC___UTILITY__2018_12_03_09_34_18 */

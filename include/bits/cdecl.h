@@ -16,9 +16,14 @@
 #define _NOEXCEPT
 #endif
 
-
-#define _Noreturn __attribute__((noreturn))
+#ifdef __cplusplus
+#define _Noreturn [[noreturn]]
+#endif
 
 typedef void _Noreturn_t;
+
+#ifndef __short_pointer
+#define __short_pointer(T) T
+#endif
 
 #endif /* INCLUDE_BITS_CDECL_H__2018_12_337_11_45_15 */

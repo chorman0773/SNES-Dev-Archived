@@ -9,6 +9,7 @@
 #include <exception>
 #include <cstddef>
 #include <typeinfo>
+#include <new>
 
 unsigned char __bad_alloc_exception_buffer[sizeof(struct exception_info)+sizeof(std::bad_alloc)];
 
@@ -96,9 +97,11 @@ __exception_ptr::~__exception_ptr(){
 		__free_exception_buffer(_M_buff);
 }
 
-void __exception_ptr::__rethrow(){
-	addr:
-	__throw(_M_buff,(pcaddr)&&addr);
+[[noreturn]] void __exception_ptr::__rethrow(){
+	 __builtin_tailcall(__throw,_M_buff,__builtin_return_address());
 }
 
-void __exception_ptr::__set_uncaught_exception_sentinal()
+
+void __throw(struct __exception_info* __buff,pcaddr __addr){
+
+}

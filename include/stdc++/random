@@ -79,6 +79,7 @@ namespace std{
 			return val*__builtin_rtc_seconds()+__builtin_rtc_nanos();
 		}
 	public:
+		using result_type = unsigned;
 		__default_random_engine():_Base(_GenUniqueSeed()){}
 		__default_random_engine(unsigned long long __seed):_Base(seed){}
 		unsigned operator()(){

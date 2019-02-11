@@ -37,7 +37,6 @@ struct exception_info{
 	dtor* __dtor;
 	copyctor* __copyctor;
 	unsigned short refcount;
-	unsigned char
 	unsigned char buffer[];
 };
 

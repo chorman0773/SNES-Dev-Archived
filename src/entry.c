@@ -27,6 +27,12 @@ void vblank();
 void hblank();
 void raise(unsigned short);
 
+void debug();
+
+void debug() __attribute__((weak)){
+
+}
+
 
 
 #pragma section .sys rx $00:8000
@@ -70,30 +76,49 @@ void __irq()__attribute__((convention(interrupt))){
 }
 
 void __dbg()__attribute__((convention(interrupt))){
-
+	debug();
 }
 
-#pragma section .header r $00:f000
-#pragma comment "Cartridge Header"
-#pragma position set $00:ffc0 force
-#pragma pack on
-const char name[21] = "SNES Homebrew Test";
-const unsigned char makeup = 0;
-const unsigned char type = 0;
-const unsigned char romSize = __builtin_size("rom");
-const unsigned char sramSize = __builtin_size("pram");
-#pragma position set $00:ffe4 force
-#pragma comment "Header Interrupt Vectors (Native)"
-const unsigned short cop_n = __builtin_short(&__dbg);
-const unsigned short brk_n = __builtin_short(&__brk);
-const unsigned short abort_n = __builtin_short(&__abort);
-const unsigned short nmi_n = __builtin_short(&__vblank);
-const unsigned short reset_n = 0xffff;
-const unsigned short irq_n = __builtin_short(&__irq);
-#pragma position set $00:fff4 force
-const unsigned short cop_e = 0xffff;
-const unsigned short abort_e = 0xffff;
-const unsigned short nmi_e = 0xffff;
-const unsigned short reset_e = __builtin_short(&__reset);
-const unsigned short brk_e = 0xffff;
-const unsigned short irq_e = 0xffff;
+typedef void(interrupt)(void);
+
+struct __interrupts{
+	void* __unused;
+	__short_pointer(interrupt*) cop;
+	__short_pointer(interrupt*) brk;
+	__short_pointer(interrupt*) abort;
+	__short_pointer(interrupt*) nmi;
+	__short_pointer(interrupt*) reset;
+	__short_pointer(interrupt*) irq;
+}__attribute__((packed));
+
+struct __header_base{
+	char name[21];
+	unsigned char makeup;
+	unsigned char type;
+	unsigned char romSz;
+	unsigned char sramSz;
+	unsigned short license;
+	unsigned char version;
+};
+
+struct __snes_dev_cartridge_header{
+	struct __header_base base;
+	unsigned short chksmCmpl;
+	unsigned short chksm;
+	struct __interrupts native;
+	struct __interrupts emulation;
+} __attribute__((packed));
+
+#define _NOINT (__short_pointer(interrupt*))(0)
+
+#define _SHORT(x) (__builtin_low((&x)))
+#pragma section .rodata.init $00:ffc0 force
+
+extern const struct __snes_dev_cartridge_header __head;
+
+const struct __snes_dev_cartridge_header __head = {
+		{"",0,0,0,0},~__builtin_checksum(&__head,sizeof(struct __header_base)),__builtin_checksum(&__head,sizeof(struct __header_base)),
+		{0,_SHORT(__dbg),_SHORT(__brk),_SHORT(__abort),_SHORT(__vblank),_NOINT,_SHORT(__irq)},
+		{0,_NOINT,_NOINT,_NOINT,_NOINT,_SHORT(__reset),_NOINT}
+};
+

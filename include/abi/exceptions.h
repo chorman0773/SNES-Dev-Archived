@@ -50,7 +50,27 @@ _CDECL void __free_exception_buffer(struct exception_info* buff)_NOEXCEPT;
  */
 _CDECL int __uncaught_exceptions()_NOEXCEPT;
 
-_CDECL void __throw(struct exception_info*,pcaddr)_NOEXCEPT;
+/**
+ * Throws an exception given by info at the address specified by addr.
+ * If pcaddr is not some address during the statement which calls __throw, the behavior is undefined.
+ *
+ * Except that if throw is tailcalled, then it shall be the return address of the invocation that makes the tailcall.
+ *
+ * The statement:
+ * throw e;
+ *
+ * Is the same as the following C++ Code
+ * _Throw:{
+ * 	struct exception_info* info = __allocate_exception_buffer(*address-of*(e),&typeid(*correct-type*(e)),__builtin_copy_constructor(*correct-type*(e)),__builtin_destructor(*correct-type*(e)))
+ * 	__throw(info,&&_Throw);
+ * }
+ *
+ * Where, *address-of*(e) is defined as std::addressof(e) if e is an lvalue, otherwise std::addressof(__expn) if e is an x-value or pr-value where __expn is defined as const auto&&, and is initialized with e.
+ * and *correct-type*(e) is std::decay_t<decltype(e)>
+ *
+ * Except that The declaration of the label _Throw is only visible to the block scope, and previous and subsequent declarations of _Throw are ignored.
+ */
+_CDECL _Noreturn _Noreturn_t __throw(struct exception_info*,pcaddr)_NOEXCEPT;
 _CDECL void __do_unwind()_NOEXCEPT;
 _CDECL void __unwind_end(pcaddr)_NOEXCEPT;
 _CDECL void __set_uncaught_exception_sentinal(pcaddr)_NOEXCEPT;

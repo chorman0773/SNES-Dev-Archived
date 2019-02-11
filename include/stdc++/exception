@@ -35,7 +35,7 @@ namespace std{
 		~__exception_ptr();
 		__exception_ptr(const __exception_ptr& p);
 		__exception_ptr(__exception_ptr&& p);
-		void __rethrow();
+		[[noreturn]] void __rethrow();
 
 		explicit operator bool()const;
 	};

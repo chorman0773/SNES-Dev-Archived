@@ -116,7 +116,7 @@ struct __snes_dev_cartridge_header{
 
 extern const struct __snes_dev_cartridge_header __head;
 
-const struct __snes_dev_cartridge_header __head = {
+const struct __snes_dev_cartridge_header __head __attribute__(()) = {
 		{"",0,0,0,0},~__builtin_checksum(&__head,sizeof(struct __header_base)),__builtin_checksum(&__head,sizeof(struct __header_base)),
 		{0,_SHORT(__dbg),_SHORT(__brk),_SHORT(__abort),_SHORT(__vblank),_NOINT,_SHORT(__irq)},
 		{0,_NOINT,_NOINT,_NOINT,_NOINT,_SHORT(__reset),_NOINT}

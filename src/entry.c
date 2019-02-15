@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-volatile unsigned short _FrameCount;
+extern volatile unsigned short _FrameCount;
 
 extern unsigned char __stackHead[];
 extern unsigned char __stackTail[];
@@ -35,7 +35,7 @@ void debug() __attribute__((weak)){
 
 
 
-#pragma section .sys rx $00:8000
+#pragma section .text.sys rx $00:8000
 void __reset() __attribute__((naked)){
 	__builtin_hint_emulation();
 	__builtin_disable_interupts();
@@ -82,7 +82,7 @@ void __dbg()__attribute__((convention(interrupt))){
 typedef void(interrupt)(void);
 
 struct __interrupts{
-	void* __unused;
+	unsigned __unused;
 	__short_pointer(interrupt*) cop;
 	__short_pointer(interrupt*) brk;
 	__short_pointer(interrupt*) abort;
@@ -99,7 +99,7 @@ struct __header_base{
 	unsigned char sramSz;
 	unsigned short license;
 	unsigned char version;
-};
+}__attribute__((packed));
 
 struct __snes_dev_cartridge_header{
 	struct __header_base base;
@@ -109,14 +109,14 @@ struct __snes_dev_cartridge_header{
 	struct __interrupts emulation;
 } __attribute__((packed));
 
-#define _NOINT (__short_pointer(interrupt*))(0)
+#define _NOINT (__short_pointer(interrupt*))(0xFFFF)
 
 #define _SHORT(x) (__builtin_low((&x)))
 #pragma section .rodata.init $00:ffc0 force
 
 extern const struct __snes_dev_cartridge_header __head;
 
-const struct __snes_dev_cartridge_header __head __attribute__(()) = {
+const struct __snes_dev_cartridge_header __head = {
 		{"",0,0,0,0},~__builtin_checksum(&__head,sizeof(struct __header_base)),__builtin_checksum(&__head,sizeof(struct __header_base)),
 		{0,_SHORT(__dbg),_SHORT(__brk),_SHORT(__abort),_SHORT(__vblank),_NOINT,_SHORT(__irq)},
 		{0,_NOINT,_NOINT,_NOINT,_NOINT,_SHORT(__reset),_NOINT}

@@ -17,7 +17,7 @@ typedef struct __jmpbuff{
 }jmpbuff;
 
 _CDECL int __setjmp(jmpbuff*);
-_CDECL noreturn_t __longjmp(const jmpbuff*,int) _Noreturn;
+_CDECL _Noreturn _Noreturn_t __longjmp(const jmpbuff*,int);
 
 #define setjmp(buff) __setjmp(&buff)
 #define longjmp(buff,val) __longjmp(&buff,val)

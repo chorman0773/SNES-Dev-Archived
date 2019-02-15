@@ -22,7 +22,11 @@
 
 typedef void _Noreturn_t;
 
-#ifndef __short_pointer
+#ifndef __has_type_modifier
+#define __has_type_modifier(T) 0
+#endif
+
+#if !__has_type_modifier(__short_pointer)
 #define __short_pointer(T) T
 #endif
 

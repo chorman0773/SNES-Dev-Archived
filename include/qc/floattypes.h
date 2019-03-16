@@ -8,8 +8,8 @@
 #ifndef INCLUDE_SNES_DEV_QC_FLOATTYPES_H__2018_11_332_10_38_21
 #define INCLUDE_SNES_DEV_QC_FLOATTYPES_H__2018_11_332_10_38_21
 
-#include <snes-dev/qc/qcdefs.h>
-#include <snes-dev/qc/inttypes.h>
+#include <qc/qcdefs.h>
+#include <qc/inttypes.h>
 
 #ifndef __cplusplus
 #define __FLOAT16_TYPE__ __typeof__(1.hf)

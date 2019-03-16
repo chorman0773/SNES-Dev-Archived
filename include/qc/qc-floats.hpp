@@ -8,10 +8,10 @@
 #ifndef INCLUDE_SNES_DEV_QC_QC_FLOATS_H__2018_11_330_17_07_54
 #define INCLUDE_SNES_DEV_QC_QC_FLOATS_H__2018_11_330_17_07_54
 
-#include <snes-dev/qc/qcdefs.h>
-#include <snes-dev/qc/inttypes.h>
+#include <qc/qcdefs.h>
+#include <qc/inttypes.h>
+#include <qc/floattypes.h>
 
-typedef float _Float16 __attribute__((size(2),align(1),qcsize(16)));
 typedef long double _LDouble;
 
 #define _QCMKBinaryFP(FPType, BitsT, Tag, Size,ExpBits,SigBits,Strict)\

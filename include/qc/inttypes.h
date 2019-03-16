@@ -8,7 +8,7 @@
 #ifndef INCLUDE_SNES_DEV_QC_INTTYPES_H__2018_11_332_11_09_38
 #define INCLUDE_SNES_DEV_QC_INTTYPES_H__2018_11_332_11_09_38
 
-#include <snes-dev/qc/qcdefs.h>
+#include <qc/qcdefs.h>
 
 #ifdef __cplusplus
 #define __SIZE_TYPE__ decltype(sizeof(int))

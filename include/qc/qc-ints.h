@@ -8,7 +8,7 @@
 #ifndef QC_GC_INTS_H__2018_11_327_00_15_53
 #define QC_GC_INTS_H__2018_11_327_00_15_53
 
-#include <snes-dev/qc/inttypes.h>
+#include <qc/inttypes.h>
 
 
 __inline__ unsigned char __builtinqc_mul8(unsigned char a,unsigned char b) __attribute__((intrinsic,always_inline,naked)){

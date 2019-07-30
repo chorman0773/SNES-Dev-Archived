@@ -8,50 +8,36 @@
 #ifndef QC_GC_INTS_H__2018_11_327_00_15_53
 #define QC_GC_INTS_H__2018_11_327_00_15_53
 
+#include <bits/cdecl.h>
 #include <qc/inttypes.h>
 
+#define __MK_INT_HELPER_TYPES(type,bits)\
+	typedef struct __div##bits{\
+		type __quo;\
+		type __rem;\
+	} __qc_div##bits;
 
-__inline__ unsigned char __builtinqc_mul8(unsigned char a,unsigned char b) __attribute__((intrinsic,always_inline,naked)){
-	__builtin_acc8();
-	__builtin_accumulator() = a;
-	__asm__ volatile("sta $00:4202");
-	__builtin_accumulator() = b;
-	__asm__ volatile("sta $00:4203");
-	__asm__ volatile("lda $00:4216");
-	return __builtin_accumulator();
-}
+#define __DEF_INT_UOP(name,type,bits)\
+	_CDECL type __qc_i##bits##name(type __a);
 
-typedef struct div8_result{
-	unsigned char quotient;
-	unsigned char remainder;
-} div8_result_t;
+#define __DEF_INT_BOP(name,type,bits)\
+		_CDECL type __qc_i##bits##name(type __a,type __b);
 
-__inline__ div8_result_t __builtinqc_div8(unsigned char a,unsigned char b) __attribute__((intrinsic,always_inline)){
-	div8_result_t res;
-	__builtin_acc8();
-	__builtin_accumulator() = a;
-	__asm__ volatile("sta $00:4204");
-	__asm__ volatile("stz $00:4205");
-	__builtin_accumulator() = b;
-	__asm__ volatile("sta $00:4206");
-	__asm__ volatile("lda $00:4214");
-	res.quotient = __builtin_accumulator();
-	__asm__ volatile("lda $00:4216");
-	res.remainder = __builtin_accumulator();
-	return res;
-}
+#define __DEF_INT_DIV(type,bits)\
+		__qc_div##bits __qc_i##bits##div_op(type __de,type __dv);\
+		_CDECL __inline__ type __qc_i##bits##div(type __de,type __dv){\
+			return __qc_i##bits##div_op(__de,__dv).__quo;\
+		}\
+		_CDECL __inline type __qc_i##bits##mod(type __de,type __dv){\
+			return __qc_i##bits##div_op(__de,__dv).__rem;\
+		}
 
-__inline__ unsigned short __builtinqc_mul16_8(unsigned short a,unsigned char b) __attribute__((intrinsic,always_inline)){
-	__builtin_acc8();
-	__builtin_accumulator() = a&0xff;
-	__asm__ volatile("sta $00:211B");
-	__builtin_accumulator() = a>>8;
-	__asm__ volatile("sta $00:211B");
-	__builtin_accumulator() = b;
-	__asm__ volatile("sta $00:211C");
-	__asm__ volatile("ldx $00:2124");
-	return __builtin_indexX();
-}
+#define __DEF_INT_OPS(type,bits)\
+	__MK_INT_HELPER_TYPES(type,bits);\
+	__DEF_INT_UOP(umn,type,bits);\
+	__DEF_INT_BOP(add,type,bits);\
+	__DEF_INT_
+
 
 
 #endif /* QC_GC_INTS_H__2018_11_327_00_15_53 */

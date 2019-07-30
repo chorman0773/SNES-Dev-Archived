@@ -5,7 +5,7 @@
  *      Author: chorm
  */
 
-#include <snes-dev/qc/qc-floats.hpp>
+#include <qc/qc-floats.hpp>
 
 /*
  * float Q_rsqrt( float number )
@@ -56,6 +56,7 @@ inline static float powOverFact(float f,unsigned c){
 		return powOverFact(f,c-1)*f/c;
 }
 
+extern"C"{
 __qcdouble __qc_minvsqrt(__qcdouble d){
 	const double threehalfs = 1.5;
 	const unsigned long long magic = 0x5FE6EB50C7B537A9;
@@ -92,5 +93,5 @@ __qcfloat __qc_mexpf(__qcfloat e){
 	float f = 0;
 }
 
-
+}
 

@@ -37,17 +37,11 @@
 
 
 #define _QCOP2(type,prefix,suffix,name)\
-	_CDECL __qc##type __qc_##prefix##name##suffix(__qc##type _1,__qc##type _2) __convention;\
-	__intrinsic type __builtin_##prefix##name##suffix(type _1,type _2) __convention{\
-		goto *((void*)__qc_##prefx##name##suffix);\
-	}
+	_CDECL __qc##type __qc_##prefix##name##suffix(__qc##type _1,__qc##type _2) __convention;
 
 #define _QCOP1(type,prefix,suffix,name)\
-	_CDECL __qc##type __qc_##prefix##name##suffix(__qc##type _1) __convention;\
-	__intrinsic type __builtin_##prefix##name##suffix(type _1) __convention{\
-		goto *((void*)__qc_##prefx##name##suffix);\
-	}\
-	_LLVMDEFINEINTRINSIC(__builtin_##prefix##name##suffix,__builtin_##prefix##name##suffix);
+	_CDECL __qc##type __qc_##prefix##name##suffix(__qc##type _1) __convention;
+
 
 
 #define _QCBINDOP(type,prefix,suffix,name) _LLVMDEFINE_OP(name,type,__builtin_##prefix##name##suffix)
